@@ -20,6 +20,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
 import com.google.protobuf.InvalidProtocolBufferException;
 import cosmos.gov.v1beta1.Gov;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,10 @@ public class GopherApiImpl implements GopherApi {
 
     @Override
     public WalletInfo autoGenerateGopherWallet(FullAccountContext fullAccountContext, AppendLogger logger) throws UnreadableWalletException {
+        Object param = fullAccountContext.getParam(GOPHER_WALLET_KEY);
+        if (param != null) {
+            throw new IllegalArgumentException("gopher wallet already exist");
+        }
         Web3Wallet wallet = fullAccountContext.getWallet();
         WalletInfo gopherWallet;
         if (wallet == null || StrUtil.isEmpty(wallet.getMnemonic())) {
@@ -228,7 +233,13 @@ public class GopherApiImpl implements GopherApi {
         for (JSONObject proposal : proposals) {
             logger.debug("vote [%s]...".formatted(proposal.get("id")));
             try {
-                String txBase64 = buildVoteTxBase64(walletInfo, proposal.getString("id"));
+                Pair<Long, Long> accountNumberAndSequence = queryAccountNumberAndSequence(fullAccountContext, walletInfo).get();
+                String txBase64 = buildVoteTxBase64(
+                        walletInfo,
+                        proposal.getString("id"),
+                        accountNumberAndSequence.getKey(),
+                        accountNumberAndSequence.getValue()
+                );
                 String txHash = broadcastTxBase64(fullAccountContext, txBase64).get();
                 voteResult.put(proposal.getString("id"), txHash);
                 logger.debug("vote [%s] success, %s".formatted(proposal.get("id"), txHash));
@@ -239,7 +250,9 @@ public class GopherApiImpl implements GopherApi {
         return voteResult;
     }
 
-    private String buildVoteTxBase64(WalletInfo walletInfo, String proposalId) throws UnreadableWalletException {
+    private String buildVoteTxBase64(
+            WalletInfo walletInfo, String proposalId, Long accountNumber, Long sequence
+    ) throws UnreadableWalletException {
         return GopherCosmosSigner.builder()
                 .chainId(CHAIN_ID)
                 .msgTypeUrl("/cosmos.gov.v1beta1.MsgVote")
@@ -248,6 +261,8 @@ public class GopherApiImpl implements GopherApi {
                 .option(RandomUtil.randomEle(
                         List.of(Gov.VoteOption.VOTE_OPTION_YES, Gov.VoteOption.VOTE_OPTION_NO, Gov.VoteOption.VOTE_OPTION_ABSTAIN,  Gov.VoteOption.VOTE_OPTION_NO_WITH_VETO)
                 ))
+                .accountNumber(accountNumber)
+                .sequence(sequence)
                 .gasLimit(200000)
                 .feeAmount("5000")
                 .feeDenom(ORIGIN_TOKEN_DENOM)
@@ -257,13 +272,14 @@ public class GopherApiImpl implements GopherApi {
     private CompletableFuture<List<JSONObject>> getActiveProposal(
             FullAccountContext fullAccountContext
     ) {
-        return getRestApiClient(fullAccountContext).jsonRequest(
+        return getRestApiClient(fullAccountContext).request(
                 VOTE_URL,
                 HttpMethod.GET,
                 buildHeaders(fullAccountContext, null),
                 new JSONObject(Map.of("proposal_status", "PROPOSAL_STATUS_VOTING_PERIOD")),
                 null
-        ).thenApply(result -> {
+        ).thenApply(response -> {
+            JSONObject result = JSONObject.parseObject(response, Feature.DisableSpecialKeyDetect);
             JSONArray proposals = result.getJSONArray("proposals");
             return proposals.stream().map(item -> (JSONObject) item).toList();
         });
