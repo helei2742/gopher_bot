@@ -1,0 +1,50 @@
+{
+  "accountNumber": "9496",
+  "authInfo": {
+    "fee": {
+      "amount": [
+        {
+          "amount": "6765",
+          "denom": "ugoai"
+        }
+      ],
+      "gasLimit": "270586",
+      "granter": "",
+      "payer": ""
+    },
+    "signerInfos": [
+      {
+        "modeInfo": {
+          "single": {
+            "mode": "SIGN_MODE_DIRECT"
+          }
+        },
+        "publicKey": {
+          "typeUrl": "/cosmos.crypto.secp256k1.PubKey",
+          "value": "CiECBUdY4/hcw5za7OiePlJC6B97mdruAYznJ0Y3SJ1ig70="
+        },
+        "sequence": "7"
+      }
+    ]
+  },
+  "chainId": "gopher-testnet",
+  "txBody": {
+    "extensionOptions": [],
+    "memo": "",
+    "messages": [
+      {
+        "typeUrl": "/cosmos.staking.v1beta1.MsgUndelegate",
+        "value": {
+          "amount": {
+            "amount": "1000000",
+            "denom": "ugoai"
+          },
+          "delegatorAddress": "gopher1ze867c7jtfd2nt6s42hv363g7qecuhansk9423",
+          "validatorAddress": "gophervaloper1smqe67yyzwluucgf4chdta22gnl7ye7na3u63d"
+        }
+      }
+    ],
+    "nonCriticalExtensionOptions": [],
+    "timeoutHeight": "0"
+  }
+}
