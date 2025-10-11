@@ -80,7 +80,13 @@ public class GopherApiImpl implements GopherApi {
     }
 
     @Override
-    public void faucet(FullAccountContext fullAccountContext, int faucetTimes, int retryTimes, AppendLogger logger) throws BotInvokeException, InterruptedException {
+    public void faucet(
+            FullAccountContext fullAccountContext,
+            int faucetTimes,
+            int retryTimes,
+            int exceptionDelay,
+            AppendLogger logger
+    ) throws BotInvokeException, InterruptedException {
         WalletInfo walletInfo = checkAndGetGopherWallet(fullAccountContext);
 
         for (int j = 0; j < faucetTimes; j++) {
@@ -95,7 +101,7 @@ public class GopherApiImpl implements GopherApi {
                     break;
                 } catch (InterruptedException | ExecutionException e) {
                     logger.warn("faucet [%s/%s] fail, retry...".formatted(i + 1, retryTimes));
-                    TimeUnit.MILLISECONDS.sleep(RandomUtil.randomLong(1000, 3000));
+                    TimeUnit.MILLISECONDS.sleep(RandomUtil.randomLong(0, exceptionDelay));
                     lastError = e;
                 }
             }

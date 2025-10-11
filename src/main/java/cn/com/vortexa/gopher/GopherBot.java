@@ -68,10 +68,10 @@ public class GopherBot extends AbstractVortexaBot {
             description = "params is [faucet times, retry times], please use sync invoke model",
             schedulerType = VortexaBotApiSchedulerType.ALL
     )
-    public void faucet(int faucetTimes, int retryTimes) {
+    public void faucet(int faucetTimes, int retryTimes, int exceptionDelay) {
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             AppendLogger logger = getBotMethodInvokeContext().getLogger();
-            gopherApi.faucet(fullAccountContext, faucetTimes, retryTimes, logger);
+            gopherApi.faucet(fullAccountContext, faucetTimes, retryTimes, exceptionDelay, logger);
         });
     }
 

@@ -16,7 +16,7 @@ public interface GopherApi {
 
     WalletInfo autoGenerateGopherWallet(FullAccountContext fullAccountContext, AppendLogger logger) throws UnreadableWalletException;
 
-    void faucet(FullAccountContext fullAccountContext, int faucetTimes, int retryTimes, AppendLogger logger) throws BotInvokeException, InterruptedException;
+    void faucet(FullAccountContext fullAccountContext, int faucetTimes, int retryTimes, int exceptionDelay, AppendLogger logger) throws BotInvokeException, InterruptedException;
 
     Pair<Double, String> balanceQuery(FullAccountContext fullAccountContext, String denom) throws IOException, ExecutionException, InterruptedException;
 
